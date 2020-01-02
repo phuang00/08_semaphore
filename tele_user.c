@@ -35,22 +35,40 @@ int main(int argc, char *argv[]) {
   sb.sem_num = 0;
   sb.sem_op = -1;
   semop(semd, &sb, 1);
+  if (errno != 0){
+    printf("%s\n", strerror(errno));
+  }
   shmd = shmget(SHM_KEY, SEG_SIZE, 0);
   if (shmd == -1){
     printf("%s\n", strerror(errno));
   }
   data = shmat(shmd, 0, 0);
+  if (errno != 0){
+    printf("%s\n", strerror(errno));
+  }
   fd = open("file.txt", O_WRONLY | O_APPEND, 0644);
+  if (fd == -1){
+    printf("%s\n", strerror(errno));
+  }
   printf("Last addition: %s\n", data);
   printf("Your addition: ");
   fgets(input, 200, stdin);
   strcpy(data, input);
   *strchr(data, '\n') = 0;
   write(fd, input, strlen(input));
+  if (errno != 0){
+    printf("%s\n", strerror(errno));
+  }
   shmdt(data);
+  if (errno != 0){
+    printf("%s\n", strerror(errno));
+  }
   close(fd);
   sb.sem_op = 1;
   semop(semd, &sb, 1);
+  if (errno != 0){
+    printf("%s\n", strerror(errno));
+  }
   /* code */
   return 0;
 }

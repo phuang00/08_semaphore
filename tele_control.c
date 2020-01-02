@@ -15,13 +15,13 @@
 #define SEM_KEY 11280
 #define SEG_SIZE 200
 
-union semun {
-  int              val;    /* Value for SETVAL */
-  struct semid_ds *buf;    /* Buffer for IPC_STAT, IPC_SET */
-  unsigned short  *array;  /* Array for GETALL, SETALL */
-  struct seminfo  *__buf;  /* Buffer for IPC_INFO
-                              (Linux-specific) */
-};
+// union semun {
+//   int              val;    /* Value for SETVAL */
+//   struct semid_ds *buf;    /* Buffer for IPC_STAT, IPC_SET */
+//   unsigned short  *array;  /* Array for GETALL, SETALL */
+//   struct seminfo  *__buf;  /* Buffer for IPC_INFO
+//                               (Linux-specific) */
+// };
 
 void get_story() {
   FILE * fp = fopen("file.txt", "r");
@@ -61,15 +61,24 @@ int main(int argc, char *argv[]) {
       printf("%s\n", strerror(errno));
     }
     data = shmat(shmd, 0, 0);
-    if (*data){
+    if (errno != 0){
+      printf("%s\n", strerror(errno));
+    }
+    else if (*data){
       strcpy(data, "");
       shmdt(data);
+      if (errno != 0){
+        printf("%s\n", strerror(errno));
+      }
     }
     printf("shared memory created\n");
     fd = open("file.txt", O_CREAT | O_RDWR | O_TRUNC, 0644);
     if (fd != -1){
       printf("file created\n");
       close(fd);
+    }
+    else{
+      printf("%s\n", strerror(errno));
     }
   }
   if (argc > 1 && !strcmp(argv[1], "-v")) {
@@ -78,17 +87,35 @@ int main(int argc, char *argv[]) {
   if (argc > 1 && !strcmp(argv[1], "-r")) {
     printf("trying to get in\n");
     semd = semget(SEM_KEY, 1, 0);
+    if (semd == -1){
+      printf("%s\n", strerror(errno));
+    }
     struct sembuf sb;
     sb.sem_num = 0;
     sb.sem_op = -1;
     semop(semd, &sb, 1);
+    if (errno != 0){
+      printf("%s\n", strerror(errno));
+    }
     get_story();
-    shmd = shmget(SHM_KEY, SEG_SIZE, IPC_CREAT | 0644);
+    shmd = shmget(SHM_KEY, SEG_SIZE, 0);
+    if (shmd == -1){
+      printf("%s\n", strerror(errno));
+    }
     shmctl(shmd, IPC_RMID, 0);
+    if (errno != 0){
+      printf("%s\n", strerror(errno));
+    }
     printf("shared memory removed\n");
     remove("file.txt");
+    if (errno != 0){
+      printf("%s\n", strerror(errno));
+    }
     printf("file removed\n");
     semctl(semd, IPC_RMID, 0);
+    if (errno != 0){
+      printf("%s\n", strerror(errno));
+    }
     printf("semaphore removed\n");
   }
   /* code */
