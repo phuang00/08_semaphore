@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
   sb.sem_num = 0;
   sb.sem_op = -1;
   semop(semd, &sb, 1);
-  shmd = shmget(SHM_KEY, 0, IPC_PRIVATE | 0644);
+  shmd = shmget(SHM_KEY, SEG_SIZE, 0);
   if (shmd == -1){
     printf("%s\n", strerror(errno));
   }
